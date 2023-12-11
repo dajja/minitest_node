@@ -18,7 +18,7 @@ const property = {
 export default function Table() {
     const [todo, setTodo] = useState("");
     const [listTodo, setListTodo] = useState([]);
-    const [perPage,setPerPage] = useState(10);
+    const [perPage, setPerPage] = useState(4);
     const [isEdit, setIsEdit] = useState(false);
     const [loading, setLoading] = useState(false);
     const [valueId, setValueId] = useState(null);
@@ -38,28 +38,32 @@ export default function Table() {
         fetchData();
     }, [])
     const handleAdd = async () => {
-        try {
-            let res;
-            if (!isEdit) {
-                res = await axios.post("http://localhost:8000/api/v1/todos", {
-                    title: todo,
-                    id: Math.floor(Math.random() * 999),
-                    completed: false
-                });
-            } else {
-                let userById = listTodo.find(e => e.id == valueId);
-                res = await axios.put(`http://localhost:8000/api/v1/todos/${valueId}`, {
-                    ...userById,
-                    title: todo
-                })
-                setIsEdit(false);
-            }
-            setListTodo(res.data.data);
-            toast.success(res.data.message, property);
-            setTodo('');
+        if (todo.length <= 0) {
+            toast.error("You must write anything", property);
+        } else {
+            try {
+                let res;
+                if (!isEdit) {
+                    res = await axios.post("http://localhost:8000/api/v1/todos", {
+                        title: todo,
+                        id: Math.floor(Math.random() * 999),
+                        completed: false
+                    });
+                } else {
+                    let userById = listTodo.find(e => e.id == valueId);
+                    res = await axios.put(`http://localhost:8000/api/v1/todos/${valueId}`, {
+                        ...userById,
+                        title: todo
+                    })
+                    setIsEdit(false);
+                }
+                setListTodo(res.data.data);
+                toast.success(res.data.message, property);
+                setTodo('');
 
-        } catch (error) {
-            toast.error(error.response.data.message, property);
+            } catch (error) {
+                toast.error(error.response.data.message, property);
+            }
         }
     }
     const handleComplete = async (id) => {
@@ -116,7 +120,7 @@ export default function Table() {
                             <button className=' bg-violet-500 rounded w-2/12 flex justify-center' onClick={handleAdd}><FaPlus className='text-white' /></button>
                         </div>
                         <div className='flex flex-col gap-y-2'>
-                            {listTodo.length > 0 && listTodo.map((e, i) => (
+                            {listTodo.length > 0 && listTodo.slice(0, perPage).map((e, i) => (
                                 <div className='flex justify-between bg-slate-200 gap-10' key={e.id}>
                                     <div className='py-2 px-3' style={{ textDecoration: e.completed ? 'line-through' : '' }} >{e.title}</div>
                                     <div className='flex'>
